@@ -1,40 +1,39 @@
-import streamlit as st
-import pandas as pd
-import datetime
-
-# Título de la aplicación
-st.title("Reservación de Citas para Pacientes")
-
-# Crear el DataFrame para almacenar las reservaciones
-if 'reservations' not in st.session_state:
-    st.session_state['reservations'] = pd.DataFrame(columns=['Paciente', 'Fecha', 'Hora'])
-
-# Función para agregar una nueva reservación
-def add_reservation(paciente, fecha, hora):
-    new_reservation = pd.DataFrame([[paciente, fecha, hora]], columns=['Paciente', 'Fecha', 'Hora'])
-    st.session_state['reservations'] = pd.concat([st.session_state['reservations'], new_reservation], ignore_index=True)
-
-# Formulario para agregar una nueva reservación
-st.header("Agregar Nueva Reservación")
-paciente = st.text_input("Nombre del Paciente")
-fecha = st.date_input("Fecha", datetime.date.today())
-hora = st.time_input("Hora", datetime.datetime.now().time())
-
-if st.button("Reservar"):
-    # Verificar si ya existe una reservación para el mismo paciente en el mismo horario
-    existing_reservation = st.session_state['reservations'][
-        (st.session_state['reservations']['Paciente'] == paciente) &
-        (st.session_state['reservations']['Fecha'] == str(fecha)) &
-        (st.session_state['reservations']['Hora'] == str(hora))
-    ]
+def agregar_reserva(nombre, fecha, hora):
+    formato = "%Y-%m-%d %H:%M"
+    inicio_reserva = datetime.strptime(f"{fecha} {hora}", formato)
+    fin_reserva = inicio_reserva + timedelta(hours=1)
     
-    if existing_reservation.empty:
-        add_reservation(paciente, fecha, hora)
-        st.success("Reservación agregada exitosamente")
-    else:
-        st.error("El paciente ya tiene una reservación en ese horario")
+    for reserva in reservas.values():
+        if reserva['inicio'] < fin_reserva and inicio_reserva < reserva['fin']:
+            return f"Error: Ya hay una reserva para ese horario ({fecha} {hora})"
+    
+    reservas[nombre] = {'inicio': inicio_reserva, 'fin': fin_reserva}
+    return f"Reserva realizada para {nombre} el {fecha} a las {hora}."
 
-# Mostrar todas las reservaciones
-st.header("Reservaciones Existentes")
-st.dataframe(st.session_state['reservations'])
+### Paso 3: Función para mostrar las reservas
 
+```python
+def mostrar_reservas():
+    for nombre, tiempo in reservas.items():
+        print(f"{nombre}: {tiempo['inicio']} - {tiempo['fin']}")
+
+# Ejemplo de uso:
+nombre = "Carlos Polanco"
+fecha = "2024-07-20"
+hora = "15:40"
+
+print(agregar_reserva(nombre, fecha, hora))
+mostrar_reservas()
+
+# Intentar una reserva en un horario conflictivo
+nombre2 = "Ana Lopez"
+hora_conflictiva = "15:50"
+
+print(agregar_reserva(nombre2, fecha, hora_conflictiva))
+mostrar_reservas()
+
+# Intentar una reserva en un horario no conflictivo
+hora_no_conflictiva = "16:50"
+
+print(agregar_reserva(nombre2, fecha, hora_no_conflictiva))
+mostrar_reservas()
