@@ -1,3 +1,9 @@
+from datetime import datetime, timedelta
+
+# Estructura de datos para las reservas
+reservas = {}
+
+# Función para agregar una reserva
 def agregar_reserva(nombre, fecha, hora):
     formato = "%Y-%m-%d %H:%M"
     inicio_reserva = datetime.strptime(f"{fecha} {hora}", formato)
@@ -10,14 +16,12 @@ def agregar_reserva(nombre, fecha, hora):
     reservas[nombre] = {'inicio': inicio_reserva, 'fin': fin_reserva}
     return f"Reserva realizada para {nombre} el {fecha} a las {hora}."
 
-### Paso 3: Función para mostrar las reservas
-
-```python
+# Función para mostrar las reservas
 def mostrar_reservas():
     for nombre, tiempo in reservas.items():
         print(f"{nombre}: {tiempo['inicio']} - {tiempo['fin']}")
 
-# Ejemplo de uso:
+# Ejemplo de uso
 nombre = "Carlos Polanco"
 fecha = "2024-07-20"
 hora = "15:40"
