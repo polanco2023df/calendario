@@ -29,8 +29,13 @@ def agregar_reserva(nombre, fecha, hora):
     except ValueError:
         return "Error: Formato de fecha u hora incorrecto. Use YYYY-MM-DD HH:MM."
     
+    # Validar que la hora esté dentro del rango permitido
+    if inicio_reserva.time() < datetime.strptime('08:00', '%H:%M').time() or inicio_reserva.time() >= datetime.strptime('16:00', '%H:%M').time():
+        return "Error: La hora debe estar entre las 08:00 AM y las 03:00 PM para asegurar una duración de una hora."
+    
     fin_reserva = inicio_reserva + timedelta(hours=1)
     
+    # Verificar conflictos con otras reservas
     for reserva in reservas.values():
         inicio_existente = datetime.strptime(reserva['inicio'], formato)
         fin_existente = datetime.strptime(reserva['fin'], formato)
@@ -48,21 +53,48 @@ def mostrar_reservas():
     for nombre, tiempo in reservas.items():
         st.write(f"{nombre}: {tiempo['inicio']} - {tiempo['fin']}")
 
-# Interfaz de Streamlit
-st.title('Sistema de Reservas')
+# Función para borrar una reserva
+def borrar_reserva(nombre):
+    if nombre in reservas:
+        del reservas[nombre]
+        guardar_reservas(reservas)
+        return f"Reserva de {nombre} eliminada."
+    return f"No se encontró una reserva a nombre de {nombre}."
 
-opcion = st.selectbox('Selecciona una opción', ['Agregar Reserva', 'Mostrar Reservas'])
+# Interfaz de Streamlit
+st.set_page_config(layout="wide")
+
+# Cargar el logo
+logo_izquierda = "8f2bdf63-f8ce-412e-9c57-df40744f44dd.png"  # Ruta al archivo del logo
+
+col1, col2 = st.columns([1, 9])
+with col1:
+    st.image(logo_izquierda, width=100)
+with col2:
+    st.title('Sistema de Reservas')
+
+opcion = st.selectbox('Selecciona una opción', ['Agregar Reserva', 'Mostrar Reservas', 'Borrar Reserva'])
 
 if opcion == 'Agregar Reserva':
     nombre = st.text_input('Nombre')
     fecha = st.date_input('Fecha')
-    hora = st.time_input('Hora')
+    hora = st.time_input('Hora', value=datetime.strptime('08:00', '%H:%M').time())
 
-    if st.button('Agregar'):
-        fecha_str = fecha.strftime('%Y-%m-%d')
-        hora_str = hora.strftime('%H:%M')
-        resultado = agregar_reserva(nombre, fecha_str, hora_str)
-        st.write(resultado)
+    if hora < datetime.strptime('08:00', '%H:%M').time() or hora >= datetime.strptime('16:00', '%H:%M').time():
+        st.warning("Por favor seleccione una hora entre las 08:00 AM y las 03:00 PM para asegurar una duración de una hora.")
+    else:
+        if st.button('Agregar'):
+            fecha_str = fecha.strftime('%Y-%m-%d')
+            hora_str = hora.strftime('%H:%M')
+            resultado = agregar_reserva(nombre, fecha_str, hora_str)
+            st.write(resultado)
 
 elif opcion == 'Mostrar Reservas':
     mostrar_reservas()
+
+elif opcion == 'Borrar Reserva':
+    nombre = st.text_input('Nombre de la reserva a borrar')
+    if st.button('Borrar'):
+        resultado = borrar_reserva(nombre)
+        st.write(resultado)
+        mostrar_reservas()
